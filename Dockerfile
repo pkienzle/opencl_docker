@@ -22,9 +22,10 @@ ARG INTEL_DRIVER_URL=http://registrationcenter-download.intel.com/akdlm/irc_nas/
 RUN mkdir -p /tmp/opencl-driver-intel
 WORKDIR /tmp/opencl-driver-intel
 #COPY $INTEL_DRIVER /tmp/opencl-driver-intel/$INTEL_DRIVER
-RUN curl -O $INTEL_DRIVER_URL/$INTEL_DRIVER 
+#RUN curl -O $INTEL_DRIVER_URL/$INTEL_DRIVER 
 # SRB 5 uses a zip file; older drivers use .tgz
 RUN echo INTEL_DRIVER is $INTEL_DRIVER; \
+    curl -O $INTEL_DRIVER_URL/$INTEL_DRIVER; \
     if echo $INTEL_DRIVER | grep -q "[.]zip$"; then \
         unzip $INTEL_DRIVER; \
         mkdir fakeroot; \
@@ -38,7 +39,8 @@ RUN echo INTEL_DRIVER is $INTEL_DRIVER; \
         rm -rf $INTEL_DRIVER $(basename $INTEL_DRIVER .tgz) *.deb; \
         mkdir -p /etc/OpenCL/vendors; \
         echo /opt/intel/*/lib64/libintelocl.so > /etc/OpenCL/vendors/intel.icd; \
-    fi;
+    fi; \
+    rm -rf /tmp/opencl-driver-intel;
 
 # For an intel GPU you can use apt-get to install the beignet-opencl-icd driver.  
 # To see the HD device you also need to add "--device=/dev/dri" to the docker 
@@ -51,19 +53,26 @@ RUN echo INTEL_DRIVER is $INTEL_DRIVER; \
 #RUN apt-get update && apt-get install -y beignet-opencl-icd
 
 # Install AMD Radeon drivers
-# Docker run command needs "--device=/dev/dri --device=/dev/kfd"
+# sonm/opencl is much smaller since it "pre-installs" the AMD libraries rather
+# going through the vendor installer (100 MB vs 800 MB).  Similarly, installing
+# alien, etc. so the intel installer can work adds 300+ MB.  Leave it this way
+# for now since it should be easier to bump driver versions; also, it should
+# be more trustworthy since the docker build relies on vendor binaries rather
+# than unsigned object files from an unknown user.
+# Docker run command needs --device=/dev/dri (and maybe --device=/dev/kfd)
 ARG AMD_DRIVER=amdgpu-pro-18.10-572953.tar.xz
 ARG AMD_DRIVER_URL=https://www2.ati.com/drivers/linux/ubuntu
 RUN mkdir -p /tmp/opencl-driver-amd
 WORKDIR /tmp/opencl-driver-amd
 #COPY $AMD_DRIVER /tmp/opencl-driver-amd/$AMD_DRIVER
-RUN curl --referer $AMD_DRIVER_URL -O $AMD_DRIVER_URL/$AMD_DRIVER 
+#RUN curl --referer $AMD_DRIVER_URL -O $AMD_DRIVER_URL/$AMD_DRIVER
 RUN echo AMD_DRIVER is $AMD_DRIVER; \
+    curl --referer $AMD_DRIVER_URL -O $AMD_DRIVER_URL/$AMD_DRIVER; \
     tar -Jxvf $AMD_DRIVER; \
-    rm $AMD_DRIVER; \
     cd amdgpu-pro-*; \
     ./amdgpu-install; \
-    apt-get install opencl-amdgpu-pro -y;
+    apt-get install opencl-amdgpu-pro -y; \
+    rm -rf /tmp/opencl-driver-amd;
 
 #RUN apt-get install -y alien
 

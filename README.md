@@ -60,7 +60,7 @@ The test machine was already set up so the specifics are not included here.
 
 Test with:
 
-    docker run --runtime=nvidia pkienzle/opencl clinfo
+    docker run --runtime=nvidia pkienzle/opencl_docker clinfo
 
 You may need to add the user to video group as part of your installation
 if your container is not running as root.
@@ -75,17 +75,18 @@ writing, so the amdgpu-pro drivers were used instead.
 
 The AMD drivers need some startup options for the container to see the GPU:
 
-    docker run --device=/dev/kfd --device=/dev/dri pkienzle/opencl clinfo
+    docker run --device=/dev/dri pkienzle/opencl clinfo
 
 For your application, you may need to add the user to video group as part 
-of your installation if your container is not running as root.
+of your installation if your container is not running as root. (Note: may
+also need --device=/dev/kfd but works fine without it on an R9 Nano).
 
 **Intel**
 
 The intel drivers are included in the container.  The CPU device shows up on
 a machine with Intel CPU.
 
-    docker run pkienzle/opencl clinfo
+    docker run pkienzle/opencl_docker clinfo
 
 The official Intel drivers do not recognize the Intel GPU from within the
 container. The open source beignet driver on Ubuntu is able to see it if 

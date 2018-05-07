@@ -29,7 +29,8 @@ AMD_DRIVER_URL=https://www2.ati.com/drivers/linux/ubuntu
 # the card and renderer as shown in the comment below.  This option can be
 # specified using RUN_OPTS="..." on the call to Make.
 NVIDIA_OPTS = --runtime=nvidia
-AMD_OPTS = --device=/dev/kfd --device=/dev/dri --group-add video
+#AMD_OPTS = --device=/dev/kfd --device=/dev/dri --group-add video
+AMD_OPTS = --device=/dev/dri
 INTEL_OPTS = --device=/dev/dri
 #INTEL_OPTS = --device=/dev/dri/card1:/dev/dri/card0 --device=/dev/dri/renderD129:/dev/dri/renderD128
 gpu ?= none
